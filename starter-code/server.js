@@ -41,6 +41,7 @@ app.post('/articles', function(request, response) {
   client.query(`
     INSERT INTO
     authors(author, "authorUrl")
+    VALUES($1, $2)
     ON CONFLICT DO NOTHING`
     , // TODO: Write a SQL query to insert a new author, ON CONFLICT DO NOTHING
     [
@@ -58,7 +59,7 @@ app.post('/articles', function(request, response) {
       `
       SELECT author_id
       FROM authors
-      WHERE author_id=$1;
+      WHERE author=$1
       `, // TODO: Write a SQL query to retrieve the author_id from the authors table for the new article
       [
         request.body.author
@@ -74,16 +75,15 @@ app.post('/articles', function(request, response) {
     client.query(
       `
       INSERT INTO
-      articles(article_id, author_id, category, "publishedOn", body)
-      VALUES ($1, $2, $3, $4, $5, $6);
+      articles(title, author_id, category, "publishedOn", body)
+      VALUES ($1, $2, $3, $4, $5);
       `, // TODO: Write a SQL query to insert the new article using the author_id from our previous query
       [
         request.body.title,
-        request.body.author,
-        request.body.author_id,
+        author_id,
         request.body.category,
         request.body.publishedOn,
-        request.body.body
+        request.body.body,
       ], // TODO: Add the data from our new article, including the author_id, as data for the SQL query.
       function(err) {
         if (err) console.error(err);
