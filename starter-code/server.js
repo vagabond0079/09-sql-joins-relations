@@ -40,12 +40,12 @@ app.get('/articles', function(request, response) {
 app.post('/articles', function(request, response) {
   client.query(`
     INSERT INTO
-    authors(author)
+    authors(author, "authorUrl")
     ON CONFLICT DO NOTHING`
     , // TODO: Write a SQL query to insert a new author, ON CONFLICT DO NOTHING
     [
       request.body.author,
-      request.body.authorURL
+      request.body.authorUrl
     ], // TODO: Add the author and "authorUrl" as data for the SQL query
     function(err) {
       if (err) console.error(err)
@@ -58,6 +58,7 @@ app.post('/articles', function(request, response) {
       `
       SELECT author_id
       FROM authors
+      WHERE author_id=$1;
       `, // TODO: Write a SQL query to retrieve the author_id from the authors table for the new article
       [
         request.body.author
@@ -73,14 +74,13 @@ app.post('/articles', function(request, response) {
     client.query(
       `
       INSERT INTO
-      articles(title, author, author_id, "authorUrl", category, "publishedOn", body)
-      VALUES ($1, $2, $3, $4, $5, $6, $7);
+      articles(article_id, author_id, category, "publishedOn", body)
+      VALUES ($1, $2, $3, $4, $5, $6);
       `, // TODO: Write a SQL query to insert the new article using the author_id from our previous query
       [
         request.body.title,
         request.body.author,
         request.body.author_id,
-        request.body.authorUrl,
         request.body.category,
         request.body.publishedOn,
         request.body.body
@@ -98,8 +98,15 @@ app.put('/articles/:id', function(request, response) {
   // an author_id property, so we can reference it from the request.body.
   // TODO: Add the required values from the request as data for the SQL query to interpolate
   client.query(
-    ``,
-    []
+    `UPDATE authors
+     SET
+    author_id=$1, author=$2, "authorUrl"=$3,
+    `,
+    [
+      request.body.author_id,
+      request.body.author,
+      request.body.authorUrl
+    ]
   )
   .then(function() {
     // TODO: Write a SQL query to update an article record. Keep in mind that article records
